@@ -75,34 +75,28 @@ def create_matchup():
         included_players = set()
 
         while len(players_sorted) >= 8:
+            # Crear diccionario para la sesión
             session = {
-                "Alta de Gobierno": [],
-                "Baja de Gobierno": [],
-                "Alta de Oposición": [],
-                "Baja de Oposición": []
+                "Alta de Gobierno": [players_sorted[0], players_sorted[-2]],  # [high_players[0], low_players[1]]
+                "Baja de Gobierno": [players_sorted[1], players_sorted[-1]],  # [high_players[1], low_players[0]]
+                "Alta de Oposición": [players_sorted[2], players_sorted[-3]],  # [high_players[2], low_players[2]]
+                "Baja de Oposición": [players_sorted[3], players_sorted[-4]]   # [high_players[3], low_players[3]]
             }
 
-            # Seleccionar jugadores para la sesión
-            high_players = players_sorted[:4]
-            low_players = players_sorted[-4:]
-
-            session["Alta de Gobierno"].extend([high_players[0], high_players[1]])
-            session["Baja de Gobierno"].extend([low_players[0], low_players[1]])
-            session["Alta de Oposición"].extend([high_players[2], high_players[3]])
-            session["Baja de Oposición"].extend([low_players[2], low_players[3]])
-
-            included_players.update([p[0] for p in high_players + low_players])
+            # Agregar jugadores incluidos a la lista de control
+            included_players.update([p[0] for team in session.values() for p in team])
             sessions.append(session)
 
-            # Eliminar los jugadores ya incluidos
+            # Eliminar los jugadores ya seleccionados para la próxima iteración
             players_sorted = players_sorted[4:-4]
 
-        # Asignar jueces
-        judges = players_sorted[:4]
+        # Asignar jueces sin repetición
+        judges = [judge[0] for judge in players_sorted[:len(sessions)]]  # Limitar el número de jueces al número de sesiones
         for i, session in enumerate(sessions):
-            judge = judges[i % len(judges)][0]
-            session["Juez"] = judge
-            included_players.add(judge)
+            if judges:  # Asignar solo si quedan jueces disponibles
+                judge = judges.pop(0)  # Extraer un juez y eliminarlo de la lista
+                session["Juez"] = judge
+                included_players.add(judge)
 
         # Generar el texto para el emparejamiento
         matchup_text = f"🌟 **Emparejamiento Realizado con la Moción: **{mocion_global}** 🌟\n\n"
@@ -110,8 +104,10 @@ def create_matchup():
         for i, session in enumerate(sessions, start=1):
             matchup_text += f"✨ **Sesión {i}** ✨\n"
             for key, value in session.items():
-                matchup_text += f"🗳️ **{key}:** {', '.join([p[0] for p in value])}\n"
-            matchup_text += f"👨‍⚖️ **Juez:** {session['Juez']}\n\n"
+                if key != "Juez":
+                    matchup_text += f"🗳️ **{key}:** {', '.join([p[0] for p in value])}\n"
+            if "Juez" in session:
+                matchup_text += f"👨‍⚖️ **Juez:** {session['Juez']}\n\n"
 
         # Participantes no incluidos
         excluded_players = set(scores.keys()) - included_players
