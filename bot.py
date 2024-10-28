@@ -59,6 +59,21 @@ def update_scores(nombre, nuevo_puntaje):
 
     except Exception as e:
         print(f"Error al actualizar puntajes: {str(e)}")
+@bot.command(name="modificar_mocion")
+async def modificar_mocion(ctx, *, nueva_mocion: str):
+    """Comando para modificar la moción de debate actual."""
+    global mocion_global
+    mocion_global = nueva_mocion  # Actualiza la moción en la variable global
+    await ctx.send(f"Moción modificada: **{mocion_global}**")
+
+@bot.command(name="quitar_mocion")
+async def quitar_mocion(ctx):
+    """Comando para quitar la moción actual."""
+    global mocion_global
+    mocion_global = ""  # Elimina la moción
+    await ctx.send("✅ La moción ha sido eliminada.")
+
+# Los comandos set_mocion y emparejar permanecen iguales.
 
 def create_matchup():
     """Crear emparejamientos de acuerdo a los puntajes registrados."""
