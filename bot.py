@@ -59,21 +59,18 @@ def update_scores(nombre, nuevo_puntaje):
 
     except Exception as e:
         print(f"Error al actualizar puntajes: {str(e)}")
+
 @bot.command(name="modificar_mocion")
 async def modificar_mocion(ctx, *, nueva_mocion: str):
-    """Comando para modificar la moción de debate actual."""
     global mocion_global
-    mocion_global = nueva_mocion  # Actualiza la moción en la variable global
+    mocion_global = nueva_mocion
     await ctx.send(f"Moción modificada: **{mocion_global}**")
 
 @bot.command(name="quitar_mocion")
 async def quitar_mocion(ctx):
-    """Comando para quitar la moción actual."""
     global mocion_global
-    mocion_global = ""  # Elimina la moción
+    mocion_global = ""
     await ctx.send("✅ La moción ha sido eliminada.")
-
-# Los comandos set_mocion y emparejar permanecen iguales.
 
 def create_matchup():
     """Crear emparejamientos de acuerdo a los puntajes registrados."""
@@ -84,36 +81,29 @@ def create_matchup():
         if len(scores) < 8:
             raise ValueError("Se necesitan al menos 8 jugadores para crear un emparejamiento.")
 
-        # Organizar jugadores en función de sus puntajes
         players_sorted = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         sessions = []
         included_players = set()
 
         while len(players_sorted) >= 8:
-            # Crear diccionario para la sesión
             session = {
-                "Alta de Gobierno": [players_sorted[0], players_sorted[-2]],  # [high_players[0], low_players[1]]
-                "Baja de Gobierno": [players_sorted[1], players_sorted[-1]],  # [high_players[1], low_players[0]]
-                "Alta de Oposición": [players_sorted[2], players_sorted[-3]],  # [high_players[2], low_players[2]]
-                "Baja de Oposición": [players_sorted[3], players_sorted[-4]]   # [high_players[3], low_players[3]]
+                "Alta de Gobierno": [players_sorted[0], players_sorted[-2]],
+                "Baja de Gobierno": [players_sorted[1], players_sorted[-1]],
+                "Alta de Oposición": [players_sorted[2], players_sorted[-3]],
+                "Baja de Oposición": [players_sorted[3], players_sorted[-4]]
             }
 
-            # Agregar jugadores incluidos a la lista de control
             included_players.update([p[0] for team in session.values() for p in team])
             sessions.append(session)
-
-            # Eliminar los jugadores ya seleccionados para la próxima iteración
             players_sorted = players_sorted[4:-4]
 
-        # Asignar jueces sin repetición
-        judges = [judge[0] for judge in players_sorted[:len(sessions)]]  # Limitar el número de jueces al número de sesiones
+        judges = [judge[0] for judge in players_sorted[:len(sessions)]]
         for i, session in enumerate(sessions):
-            if judges:  # Asignar solo si quedan jueces disponibles
-                judge = judges.pop(0)  # Extraer un juez y eliminarlo de la lista
+            if judges:
+                judge = judges.pop(0)
                 session["Juez"] = judge
                 included_players.add(judge)
 
-        # Generar el texto para el emparejamiento
         matchup_text = f"🌟 **Emparejamiento Realizado con la Moción: **{mocion_global}** 🌟\n\n"
 
         for i, session in enumerate(sessions, start=1):
@@ -124,7 +114,6 @@ def create_matchup():
             if "Juez" in session:
                 matchup_text += f"👨‍⚖️ **Juez:** {session['Juez']}\n\n"
 
-        # Participantes no incluidos
         excluded_players = set(scores.keys()) - included_players
         if excluded_players:
             matchup_text += f"🚫 **Participantes No Incluidos:** {', '.join(excluded_players)}"
@@ -137,19 +126,16 @@ def create_matchup():
 
 @bot.command(name="emparejar")
 async def emparejar(ctx):
-    """Comando para crear emparejamientos y enviarlos al canal."""
     matchup_result = create_matchup()
     await ctx.send(matchup_result)
 
 @bot.command(name="actualizar_puntaje")
 async def actualizar_puntaje(ctx, nombre: str, nuevo_puntaje: int):
-    """Comando para actualizar el puntaje de un jugador."""
     update_scores(nombre, nuevo_puntaje)
     await ctx.send(f"Puntaje de {nombre} actualizado a {nuevo_puntaje}")
 
 @bot.command(name="ver_puntajes")
 async def ver_puntajes(ctx):
-    """Comando para ver los puntajes actuales de todos los jugadores."""
     try:
         with open("data/scores.json", "r") as file:
             scores = json.load(file)
@@ -166,7 +152,6 @@ async def ver_puntajes(ctx):
 
 @bot.command(name="estadisticas")
 async def estadisticas(ctx):
-    """Comando para mostrar estadísticas de los jugadores."""
     try:
         with open("data/scores.json", "r") as file:
             scores = json.load(file)
@@ -192,7 +177,6 @@ async def estadisticas(ctx):
 
 @bot.command(name="borrar_puntajes")
 async def borrar_puntajes(ctx):
-    """Comando para borrar todos los puntajes registrados."""
     try:
         with open("data/scores.json", "w") as file:
             json.dump({}, file)
@@ -200,28 +184,60 @@ async def borrar_puntajes(ctx):
     except Exception as e:
         await ctx.send(f"Error al borrar los puntajes: {str(e)}")
 
-@bot.command(name="ayuda")
-async def ayuda(ctx):
-    """Comando para mostrar la ayuda disponible."""
-    help_message = (
-        "🎉 ¡Bienvenido a la Sociedad de Debate de la Universidad del Rosario! 🎉\n\n"
-        "🌟 ¡Estamos emocionados de tenerte aquí! 🌟\n"
-        "Aquí tienes una lista de los comandos disponibles para ayudarte a disfrutar de nuestra comunidad:\n\n"
-        "🤝 **`!emparejar`**: Crea emparejamientos para los debates.\n"
-        "📈 **`!actualizar_puntaje <nombre> <nuevo_puntaje>`**: Actualiza el puntaje de un jugador.\n"
-        "📊 **`!ver_puntajes`**: Muestra los puntajes actuales de todos los jugadores.\n"
-        "📊 **`!estadisticas`**: Muestra estadísticas de los jugadores.\n"
-        "🗑️ **`!borrar_puntajes`**: Elimina todos los puntajes registrados.\n"
-        "❓ **`!ayuda`**: Muestra este mensaje de ayuda.\n\n"
-        "✨ ¡Usa los comandos como se indica y disfruta del debate! 🗣️💬\n"
-        "Si tienes alguna pregunta, no dudes en preguntar. ¡Estamos aquí para ayudarte! 🤗"
-    )
-    await ctx.send(help_message)
+@bot.command(name="asignar_juez")
+async def asignar_juez(ctx, sesion_numero: int, nombre_juez: str):
+    try:
+        with open("data/scores.json", "r") as file:
+            scores = json.load(file)
 
-def run_bot():
-    """Función para ejecutar el bot."""
-    bot.run(TOKEN)
+        if nombre_juez not in scores:
+            await ctx.send(f"El juez {nombre_juez} no está registrado.")
+            return
 
-# Ejecutar el servidor y el bot
-Thread(target=keep_alive).start()  # Inicia el servidor en un hilo separado
-run_bot()  # Ejecuta el bot
+        existing_matchups = create_matchup()
+        if isinstance(existing_matchups, str):
+            await ctx.send(existing_matchups)
+            return
+
+        sessions = existing_matchups["sessions"]
+
+        if 1 <= sesion_numero <= len(sessions):
+            sessions[sesion_numero - 1]["Juez"] = nombre_juez
+            await ctx.send(f"👨‍⚖️ Juez {nombre_juez} asignado a la **Sesión {sesion_numero}**.")
+        else:
+            await ctx.send("Número de sesión inválido.")
+
+    except Exception as e:
+        await ctx.send(f"Error al asignar juez: {str(e)}")
+
+@bot.command(name="asignar_miembro")
+async def asignar_miembro(ctx, sesion_numero: int, casa: str, nombre_completo: str):
+    try:
+        with open("data/scores.json", "r") as file:
+            scores = json.load(file)
+
+        if nombre_completo not in scores:
+            await ctx.send(f"El miembro {nombre_completo} no está registrado.")
+            return
+
+        existing_matchups = create_matchup()
+        if isinstance(existing_matchups, str):
+            await ctx.send(existing_matchups)
+            return
+
+        sessions = existing_matchups["sessions"]
+        casas_validas = ["Alta de Gobierno", "Baja de Gobierno", "Alta de Oposición", "Baja de Oposición"]
+
+        if 1 <= sesion_numero <= len(sessions) and casa in casas_validas:
+            sessions[sesion_numero - 1][casa][0] = nombre_completo
+            await ctx.send(f"👤 Miembro {nombre_completo} asignado a **{casa}** en la Sesión {sesion_numero}.")
+        else:
+            await ctx.send("Número de sesión o nombre de casa inválidos.")
+
+    except Exception as e:
+        await ctx.send(f"Error al asignar miembro: {str(e)}")
+
+# Función para mantener vivo el servidor (si usas un archivo de keep_alive)
+keep_alive()
+
+bot.run(TOKEN)
