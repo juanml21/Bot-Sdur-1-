@@ -82,15 +82,18 @@ def create_matchup():
             sessions.append(session)
             players_sorted = players_sorted[4:-4]
 
+        # Seleccionar jueces con los puntajes más altos entre los jugadores restantes
         remaining_players = [p for p in players_sorted if p[0] not in included_players]
         judges = sorted(remaining_players, key=lambda x: x[1], reverse=True)[:len(sessions)]
         
+        # Asignar un juez a cada sesión según los puntajes más altos restantes
         for i, session in enumerate(sessions):
             if judges:
                 judge = judges.pop(0)
                 session["Juez"] = judge[0]
                 included_players.add(judge[0])
 
+        # Construir el mensaje de emparejamiento
         matchup_text = f"🌟 **Emparejamiento Realizado con la Moción: **{mocion_global}** 🌟\n\n"
 
         for i, session in enumerate(sessions, start=1):
