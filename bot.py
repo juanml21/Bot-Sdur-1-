@@ -58,7 +58,7 @@ async def quitar_mocion(ctx):
     await ctx.send("✅ La moción ha sido eliminada.")
 
 def create_matchup():
-    """Crear emparejamientos de acuerdo a los puntajes registrados y seleccionar jueces con los puntajes más altos."""
+    """Crear emparejamientos seleccionando primero a los jueces con los puntajes más altos y luego asignando jugadores a las casas."""
     try:
         with open("data/scores.json", "r") as file:
             scores = json.load(file)
@@ -66,31 +66,35 @@ def create_matchup():
         if len(scores) < 8:
             raise ValueError("Se necesitan al menos 8 jugadores para crear un emparejamiento.")
 
+        # Ordenar todos los jugadores por puntaje de mayor a menor
         players_sorted = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        sessions = []
-        included_players = set()
 
-        while len(players_sorted) >= 8:
+        # Seleccionar los jueces (uno para cada sesión) con los puntajes más altos
+        num_sessions = len(players_sorted) // 8
+        judges = players_sorted[:num_sessions]  # Selección de los jueces
+        remaining_players = players_sorted[num_sessions:]  # Jugadores restantes para asignar a casas
+
+        sessions = []
+        included_players = set(j[0] for j in judges)  # Registrar jueces como jugadores incluidos
+
+        # Crear emparejamientos para cada sesión
+        while len(remaining_players) >= 8:
             session = {
-                "Alta de Gobierno": [players_sorted[0], players_sorted[-2]],
-                "Baja de Gobierno": [players_sorted[1], players_sorted[-1]],
-                "Alta de Oposición": [players_sorted[2], players_sorted[-3]],
-                "Baja de Oposición": [players_sorted[3], players_sorted[-4]]
+                "Alta de Gobierno": [remaining_players[0], remaining_players[-2]],
+                "Baja de Gobierno": [remaining_players[1], remaining_players[-1]],
+                "Alta de Oposición": [remaining_players[2], remaining_players[-3]],
+                "Baja de Oposición": [remaining_players[3], remaining_players[-4]]
             }
 
             included_players.update([p[0] for team in session.values() for p in team])
             sessions.append(session)
-            players_sorted = players_sorted[4:-4]
+            remaining_players = remaining_players[4:-4]
 
-        # Seleccionar jueces con los puntajes más altos entre los jugadores restantes
-        remaining_players = [p for p in players_sorted if p[0] not in included_players]
-        judges = sorted(remaining_players, key=lambda x: x[1], reverse=True)[:len(sessions)]
-        
-        # Asignar un juez a cada sesión según los puntajes más altos restantes
+        # Asignar los jueces a cada sesión
         for i, session in enumerate(sessions):
             if judges:
                 judge = judges.pop(0)
-                session["Juez"] = judge[0]
+                session["Juez"] = judge[0]  # Asignar el juez a la sesión
                 included_players.add(judge[0])
 
         # Construir el mensaje de emparejamiento
@@ -104,6 +108,7 @@ def create_matchup():
             if "Juez" in session:
                 matchup_text += f"👨‍⚖️ **Juez:** {session['Juez']}\n\n"
 
+        # Mostrar participantes no incluidos
         excluded_players = set(scores.keys()) - included_players
         if excluded_players:
             matchup_text += f"🚫 **Participantes No Incluidos:** {', '.join(excluded_players)}"
