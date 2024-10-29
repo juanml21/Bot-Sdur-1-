@@ -237,6 +237,28 @@ async def asignar_miembro(ctx, sesion_numero: int, casa: str, nombre_completo: s
     except Exception as e:
         await ctx.send(f"Error al asignar miembro: {str(e)}")
 
+@bot.command(name="ayuda")
+async def ayuda(ctx):
+    """Comando para mostrar la ayuda disponible."""
+    help_message = (
+        "🎉 ¡Bienvenido a la Sociedad de Debate de la Universidad del Rosario! 🎉\n\n"
+        "🌟 ¡Estamos emocionados de tenerte aquí! 🌟\n"
+        "Aquí tienes una lista de los comandos disponibles para ayudarte a disfrutar de nuestra comunidad:\n\n"
+        "🤝 **!emparejar**: Crea emparejamientos para los debates.\n"
+        "📈 **!actualizar_puntaje <nombre> <nuevo_puntaje>**: Actualiza el puntaje de un jugador.\n"
+        "📊 **!ver_puntajes**: Muestra los puntajes actuales de todos los jugadores.\n"
+        "📊 **!estadisticas**: Muestra estadísticas de los jugadores.\n"
+        "🗑️ **!borrar_puntajes**: Elimina todos los puntajes registrados.\n"
+        "✅ **!modificar_mocion <nueva_mocion>**: Modifica la moción actual.\n"
+        "❌ **!quitar_mocion**: Elimina la moción actual.\n"
+        "👨‍⚖️ **!asignar_juez <sesion_numero> <nombre_juez>**: Asigna un juez a una sesión específica.\n"
+        "👤 **!asignar_miembro <sesion_numero> <casa> <nombre_completo>**: Asigna un miembro a una casa en una sesión específica.\n"
+        "❓ **!ayuda**: Muestra este mensaje de ayuda.\n\n"
+        "✨ ¡Usa los comandos como se indica y disfruta del debate! 🗣️💬\n"
+        "Si tienes alguna pregunta, no dudes en preguntar. ¡Estamos aquí para ayudarte! 🤗"
+    )
+    await ctx.send(help_message)
+
 def run_bot():
     """Función para ejecutar el bot."""
     bot.run(TOKEN)
