@@ -195,6 +195,26 @@ async def asignar_miembro(ctx, sesion_numero: int, casa: str, *nombre_miembro):
 
     except Exception as e:
         await ctx.send(f"Error al asignar miembro: {str(e)}")
+@bot.command(name="borrar_puntajes")
+async def borrar_puntajes(ctx, *nombre_completo):
+    nombre = " ".join(nombre_completo)
+    try:
+        # Cargar los puntajes existentes
+        with open("data/scores.json", "r") as file:
+            scores = json.load(file)
+        
+        # Verificar si el nombre existe en los puntajes
+        if nombre in scores:
+            del scores[nombre]
+            # Guardar los puntajes actualizados
+            with open("data/scores.json", "w") as file:
+                json.dump(scores, file)
+            await ctx.send(f"✅ Puntaje de {nombre} ha sido eliminado.")
+        else:
+            await ctx.send(f"❌ El participante {nombre} no está registrado.")
+    except Exception as e:
+        await ctx.send(f"Error al borrar puntaje: {str(e)}")
+
 
 @bot.command(name="ayuda")
 async def ayuda(ctx):
