@@ -237,7 +237,10 @@ async def asignar_miembro(ctx, sesion_numero: int, casa: str, nombre_completo: s
     except Exception as e:
         await ctx.send(f"Error al asignar miembro: {str(e)}")
 
-# Función para mantener vivo el servidor (si usas un archivo de keep_alive)
-keep_alive()
+def run_bot():
+    """Función para ejecutar el bot."""
+    bot.run(TOKEN)
 
-bot.run(TOKEN)
+# Ejecutar el servidor y el bot
+Thread(target=keep_alive).start()  # Inicia el servidor en un hilo separado
+run_bot()  # Ejecuta el bot
